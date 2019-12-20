@@ -4,6 +4,8 @@ let cupsAmt = 0
 let lemonsAmt = 0
 let sugarAmt = 0
 let iceAmt = 0
+let dayChoice = 0
+let counter = 0
 
 let startScreen = document.getElementById('start-screen')
 let startButton = document.getElementById('start-button')
@@ -20,42 +22,37 @@ dayChoiceScreen.innerHTML = `
     <button id='seven-days'>7 Days</button><br>
     <button id='fourteen-days'>14 Days</button><br>
 `
+
 dayChoiceScreen.addEventListener("click", function (e) {
     if (e.target.id === 'three-days') {
-        runGame(3);
+        runGame();
+        dayChoice = 3
     } else if (e.target.id === 'seven-days') {
-        runGame(7);
+        runGame();
+        dayChoice = 7
     } else if (e.target.id === 'fourteen-days') {
-        runGame(14);
+        runGame();
+        dayChoice = 14
     }
 })
 
-let counter = 0
-function startGame (days) {
-    while (counter < days) {
-        runGame();
-    }
-    endGame();
-}
-
 function runGame () {
+    money = 20.0
+    cupsAmt = 0
+    lemonsAmt = 0
+    sugarAmt = 0
+    iceAmt = 0
+    counter = 0
     //replace current screen with buy screen
     gameContainerDiv.innerHTML = ``
     gameContainerDiv.appendChild(buyScreen)
-}
-
-function endGame () {
-    console.log('game is done!')
-    //pass in final values to calculate p/l
-    // gameContainerDiv.innerHTML = ``
-    // gameContainerDiv.appendChild(endScreen)
 }
 
 let buyScreen = document.createElement('div')
 buyScreen.id = 'buy-screen'
 buyScreen.innerHTML = `
 <h1>Purchase Ingredients</h1>
-<h5>You have <span id='cup-total'>${cupsAmt}</span> cups<button id='buy-cup'>Buy Cups</button></h5><br>
+<h5>You have <span id='cup-total'>${cupsAmt}</span> cups<button id='buy-cups'>Buy Cups</button></h5><br>
 <h5>You have <span id='lemon-total'>${lemonsAmt}</span> lemons<button id='buy-lemons'>Buy Lemons</button></h5><br>
 <h5>You have <span id='sugar-total'>${sugarAmt}</span> sugar<button id='buy-sugar'>Buy Sugar</button></h5><br>
 <h5>You have <span id='ice-total'>${iceAmt}</span> ice<button id='buy-ice'>Buy Ice</button></h5><br>
@@ -65,6 +62,14 @@ buyScreen.innerHTML = `
 buyScreen.addEventListener("click", function(e) {
     if (e.target.id === 'go-to-recipe') {
         gameContainerDiv.replaceChild(recipeScreen, buyScreen)
+    } else if (e.target.id === 'buy-ice') {
+        console.log('clicking buy ice')
+    } else if (e.target.id === 'buy-lemons') {
+        console.log('clicking buy lemons')
+    } else if (e.target.id === 'buy-sugar') {
+        console.log('clicking buy sugar')
+    } else if (e.target.id === 'buy-cups') {
+        console.log('clicking buy cups')
     }
 })
 
@@ -97,7 +102,7 @@ function createRecipe(recipe){
     Ice per pitcher:<br>
     <input type="integer" name="ice" value="${recipe.ice}">
     <br><br>
-    <input type="submit" value="Submit">
+    <input type="submit" value="Submit and start day">
     <br>
     <button id='back-to-store'>Go back to store</button>
     </form> 
@@ -107,24 +112,62 @@ function createRecipe(recipe){
 recipeScreen.addEventListener("click", function (e) {
     if (e.target.id === 'back-to-store') {
         gameContainerDiv.replaceChild(buyScreen, recipeScreen)
-    }
+    } 
 })
 
 recipeScreen.addEventListener("submit", function (e) {
     e.preventDefault();
-    let setPrice = e.target[0].value
-    let setLemons = e.target[1].value
-    let setSugar = e.target[2].value
-    let setIce = e.target[3].value
+    let setPrice = parseInt(e.target[0].value)
+    let setLemons = parseInt(e.target[1].value)
+    let setSugar = parseInt(e.target[2].value)
+    let setIce = parseInt(e.target[3].value)
+
+    gameContainerDiv.replaceChild(resultScreen, recipeScreen)
     
-    runSimulation(setPrice, setLemons, setSugar, setIce)
+    runSimulation(setPrice, setLemons, setSugar, setIce);
+
 })
 
-function runSimulation () {
+function runSimulation (setPrice, setLemons, setSugar, setIce) {
+    let sampleMath = setPrice + setLemons + setSugar + setIce
 
+    counter += 1
+
+    resultScreen.innerHTML = `
+    <h1>Results for Day ${counter}</h1>
+    <h5>results of simulation go here: ${sampleMath}</h5>
+    `
+
+    let nextDayButton = document.createElement('button')
+    nextDayButton.innerText = 'Back to store to prepare for next day'
+    resultScreen.appendChild(nextDayButton)
+    nextDayButton.addEventListener("click", function () {
+        gameContainerDiv.replaceChild(buyScreen, resultScreen)
+    })
+
+    if (counter >= dayChoice) {
+        let finalResultsButton = document.createElement('button')
+        finalResultsButton.innerText = 'See final results'
+        resultScreen.replaceChild(finalResultsButton, nextDayButton)
+        finalResultsButton.addEventListener("click", function() {
+            endGame();
+        })
+    } 
 }
 
+function endGame () {
+    gameContainerDiv.replaceChild(endScreen, resultScreen)
+    endScreen.innerHTML = `
+    <h1>Final Profit/Loss</h1>
+    <h5>Money Money money: ${money}</h5>
+    <button id='play-again'>Play again</button>
+    `
 
+    let playAgainButton = document.getElementById('play-again')
+    playAgainButton.addEventListener("click", function() {
+        gameContainerDiv.replaceChild(dayChoiceScreen, endScreen)
+    })
+}
 
 let resultScreen = document.createElement('div')
 resultScreen.id = 'result-screen'
