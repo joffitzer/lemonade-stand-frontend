@@ -19,7 +19,14 @@ let iceQ
 
 let dayChoice = 0
 let counter = 0
-let weather = 'happy sunshine'
+let weather
+let weatherType
+
+let weatherTypeArray = ["Sunny", "Partly Cloudy", "Rainy"]
+
+let baseArray = [...Array(100).keys()]
+let weatherArray = baseArray.slice(50)
+
 
 function getPricesAndQuantities() {
     fetch (`http://localhost:3000/api/v1/items`)
@@ -53,18 +60,8 @@ let displayMoney = document.getElementById('money-span')
 displayMoney.innerText = `${money}`
 
 let displayWeather = document.getElementById('weather-span')
-displayWeather.innerText = `${weather}`
+displayWeather.innerText = `${weather} degrees and ${weatherType}`
 
-// function hideConstants() {
-//     constantsContainer.style.display = 'none';
-// }
-
-// function displayConstants() {
-//     constantsContainer.innerHTML = `
-//     <h5>Money: <span id='money-span'></span></h5>
-//     <h5>Weather: <span id='weather-span'></span></h5>
-//     `
-// }
 
 let startScreen = document.getElementById('start-screen')
 let startButton = document.getElementById('start-button')
@@ -84,17 +81,14 @@ dayChoiceScreen.innerHTML = `
 
 dayChoiceScreen.addEventListener("click", function (e) {
     if (e.target.id === 'three-days') {
-        // getPricesAndQuantities();
         runGame();
         constantsContainer.style.display = 'block'
         dayChoice = 3
     } else if (e.target.id === 'seven-days') {
-        // getPricesAndQuantities();
         runGame();
         constantsContainer.style.display = 'block'
         dayChoice = 7
     } else if (e.target.id === 'fourteen-days') {
-        // getPricesA();
         runGame();
         constantsContainer.style.display = 'block'
         dayChoice = 14
@@ -103,9 +97,18 @@ dayChoiceScreen.addEventListener("click", function (e) {
 
 function runGame () {
     //replace current screen with buy screen
+    chooseWeather()
     gameContainerDiv.innerHTML = ``
     gameContainerDiv.appendChild(buyScreen)
 }
+
+
+function chooseWeather() {
+    weather = weatherArray[Math.floor(Math.random() * weatherArray.length)]
+    weatherType = weatherTypeArray[Math.floor(Math.random() * weatherTypeArray.length)]
+    updateMoney()
+}
+
 
 let buyScreen = document.createElement('div')
 buyScreen.id = 'buy-screen'
@@ -172,8 +175,8 @@ buyScreen.addEventListener("click", function(e) {
 
 function updateMoney () {
     constantsContainer.innerHTML = `
-    <h5>Money: <span id='money-span'>${money}</span></h5>
-    <h5>Weather: <span id='weather-span'>${weather}</span></h5>
+    <h5>Money: <span id='money-span'>${parseFloat(money.toFixed(2))}</span></h5>
+    <h5>Weather: <span id='weather-span'>${weather} degrees and ${weatherType}</span></h5>
     `
 }
 
@@ -219,7 +222,7 @@ recipeScreen.addEventListener("click", function (e) {
 
 recipeScreen.addEventListener("submit", function (e) {
     e.preventDefault();
-    let setPrice = parseInt(e.target[0].value)
+    let setPrice = parseFloat(e.target[0].value)
     let setLemons = parseInt(e.target[1].value)
     let setSugar = parseInt(e.target[2].value)
     let setIce = parseInt(e.target[3].value)
@@ -230,20 +233,126 @@ recipeScreen.addEventListener("submit", function (e) {
 
 })
 
+let revenue 
+
+function calculateIce(setIce) {
+    let idealIce = (weather/2) - 24
+    let x = Math.abs(((setIce - idealIce)/idealIce)*.25)
+    return (33.33 * (1-x))
+}
+
+function calculatePricing(setPrice) {
+    let idealPrice
+    if (weather < 65) {
+        idealPrice = 0.75
+    } else if ((weather >= 65) && (weather <= 80)) {
+        idealPrice = 1.10
+    } else if (weather > 80) {
+        idealPrice = 1.50
+    }
+    let x = Math.abs((setPrice - idealPrice)/idealPrice)
+    return (33.33 * (1-x))
+}
+
+function calculateRatio(setLemons, setSugar) {
+    let idealRatio = 2
+    let setRatio = (setLemons/setSugar)
+    let x = Math.abs(((setRatio - idealRatio)/idealRatio)*.25)
+    return (33.33 * (1-x))
+}
+
+function calculatePeople() {
+    let array 
+    let finalArray 
+    if (weatherType === "Sunny") {
+        array = [...Array(200).keys()]
+        finalArray = array.slice(125)
+        return (finalArray[Math.floor(Math.random() * finalArray.length)])
+    } else if (weatherType === "Partly Cloudy") {
+        array = [...Array(150).keys()]
+        finalArray = array.slice(100)
+        return (finalArray[Math.floor(Math.random() * finalArray.length)])
+    } else {
+        array = [...Array(100).keys()]
+        finalArray = array.slice(50)
+        return (finalArray[Math.floor(Math.random() * finalArray.length)])
+    }
+}
+
 function runSimulation (setPrice, setLemons, setSugar, setIce) {
-    let sampleMath = setPrice + setLemons + setSugar + setIce
+
+    let successRate = calculateIce(setIce) + calculatePricing(setPrice) + calculateRatio(setLemons, setSugar)
+    let people = calculatePeople()
+
+    let traffic = Math.floor(((successRate/100) * people))
+    // console.log("traffic", traffic)
+    // console.log("calc people", people)
+    // console.log("success rate", successRate)
+    
+    let pitchers = Math.ceil(traffic / 10)
+
+    if ( ((pitchers * setLemons) <= lemonsAmt) && ((pitchers * setSugar) <= sugarAmt) && ((pitchers * setIce) <= iceAmt)) {
+        if (cupsAmt >= traffic) {
+            revenue = setPrice * traffic
+            lemonsAmt -= (pitchers * setLemons)
+            sugarAmt -= (pitchers * setSugar)
+            iceAmt -= (pitchers * setIce)
+            cupsAmt -= traffic
+            money += revenue
+            refreshBuyScreen()
+            updateMoney()
+        } else {
+            revenue = setPrice * cupsAmt
+            let numOfPitchers = Math.ceil(cupsAmt / 10)
+            lemonsAmt -= (numOfPitchers * setLemons)
+            sugarAmt -= (numOfPitchers * setSugar)
+            iceAmt -= (numOfPitchers * setIce)
+            cupsAmt = 0
+            money += revenue
+            refreshBuyScreen()
+            updateMoney()
+        }
+    } else {
+       let minLemon = lemonsAmt / setLemons
+       let minSugar = sugarAmt / setSugar
+       let minIce = iceAmt / setIce
+       let maxPitchers = Math.min(minLemon, minIce, minSugar)
+       if (cupsAmt >= (maxPitchers*10)) {
+           revenue = setPrice * (maxPitchers * 10)
+           lemonsAmt -= (maxPitchers * setLemons)
+           sugarAmt -= (maxPitchers * setSugar)
+           iceAmt -= (maxPitchers * setIce)
+           cupsAmt -= (maxPitchers * 10)
+           money += revenue
+           refreshBuyScreen()
+           updateMoney()
+       } else {
+           revenue = cupsAmt * setPrice
+           let minPitchers = Math.ceil(cupsAmt/10)
+           lemonsAmt -= (minPitchers * setLemons)
+           sugarAmt -= (minPitchers * setSugar)
+           iceAmt -= (minPitchers * setIce)
+           cupsAmt = 0
+           money += revenue
+           refreshBuyScreen()
+           updateMoney()
+           
+       }
+
+    }
 
     counter += 1
 
     resultScreen.innerHTML = `
     <h1>Results for Day ${counter}</h1>
-    <h5>results of simulation go here: ${sampleMath}</h5>
+    <h5>Total earnings today: ${parseFloat(revenue.toFixed(2))}</h5>
     `
 
     let nextDayButton = document.createElement('button')
     nextDayButton.innerText = 'Back to store to prepare for next day'
     resultScreen.appendChild(nextDayButton)
     nextDayButton.addEventListener("click", function () {
+        chooseWeather()
         gameContainerDiv.replaceChild(buyScreen, resultScreen)
     })
 
