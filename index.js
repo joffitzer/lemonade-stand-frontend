@@ -1,11 +1,70 @@
 let gameContainerDiv = document.getElementById('game-container')
 let money = 20.0
+
 let cupsAmt = 0
+let cupsP
+let cupsQ
+
 let lemonsAmt = 0
+let lemonsP
+let lemonsQ
+
 let sugarAmt = 0
+let sugarP
+let sugarQ
+
 let iceAmt = 0
+let iceP
+let iceQ
+
 let dayChoice = 0
 let counter = 0
+let weather = 'happy sunshine'
+
+function getPricesAndQuantities() {
+    fetch (`http://localhost:3000/api/v1/items`)
+    .then (function (resp) {
+        return resp.json();
+    }).then (function (items) {
+        cupsP = items[0].price
+        cupsQ = items[0].quantity
+        lemonsP = items[1].price
+        lemonsQ = items[1].quantity
+        iceP = items[2].price
+        iceQ = items[2].quantity
+        sugarP = items[3].price
+        sugarQ = items[3].quantity
+        refreshBuyScreen();
+})
+}
+
+getPricesAndQuantities();
+
+let constantsContainer = document.getElementById('constants-container')
+
+constantsContainer.style.display = 'none';
+
+constantsContainer.innerHTML = `
+<h5>Money: <span id='money-span'></span></h5>
+<h5>Weather: <span id='weather-span'></span></h5>
+`
+
+let displayMoney = document.getElementById('money-span')
+displayMoney.innerText = `${money}`
+
+let displayWeather = document.getElementById('weather-span')
+displayWeather.innerText = `${weather}`
+
+// function hideConstants() {
+//     constantsContainer.style.display = 'none';
+// }
+
+// function displayConstants() {
+//     constantsContainer.innerHTML = `
+//     <h5>Money: <span id='money-span'></span></h5>
+//     <h5>Weather: <span id='weather-span'></span></h5>
+//     `
+// }
 
 let startScreen = document.getElementById('start-screen')
 let startButton = document.getElementById('start-button')
@@ -25,24 +84,24 @@ dayChoiceScreen.innerHTML = `
 
 dayChoiceScreen.addEventListener("click", function (e) {
     if (e.target.id === 'three-days') {
+        // getPricesAndQuantities();
         runGame();
+        constantsContainer.style.display = 'block'
         dayChoice = 3
     } else if (e.target.id === 'seven-days') {
+        // getPricesAndQuantities();
         runGame();
+        constantsContainer.style.display = 'block'
         dayChoice = 7
     } else if (e.target.id === 'fourteen-days') {
+        // getPricesA();
         runGame();
+        constantsContainer.style.display = 'block'
         dayChoice = 14
     }
 })
 
 function runGame () {
-    money = 20.0
-    cupsAmt = 0
-    lemonsAmt = 0
-    sugarAmt = 0
-    iceAmt = 0
-    counter = 0
     //replace current screen with buy screen
     gameContainerDiv.innerHTML = ``
     gameContainerDiv.appendChild(buyScreen)
@@ -50,30 +109,73 @@ function runGame () {
 
 let buyScreen = document.createElement('div')
 buyScreen.id = 'buy-screen'
-buyScreen.innerHTML = `
-<h1>Purchase Ingredients</h1>
-<h5>You have <span id='cup-total'>${cupsAmt}</span> cups<button id='buy-cups'>Buy Cups</button></h5><br>
-<h5>You have <span id='lemon-total'>${lemonsAmt}</span> lemons<button id='buy-lemons'>Buy Lemons</button></h5><br>
-<h5>You have <span id='sugar-total'>${sugarAmt}</span> sugar<button id='buy-sugar'>Buy Sugar</button></h5><br>
-<h5>You have <span id='ice-total'>${iceAmt}</span> ice<button id='buy-ice'>Buy Ice</button></h5><br>
-<button id='go-to-recipe'>Go to recipe</button>
-`
+function refreshBuyScreen () { 
+    buyScreen.innerHTML = `
+        <h1>Purchase Ingredients</h1>
+        <h5>You have <span id='cup-total'>${cupsAmt}</span> cups<button id='buy-cups'>Buy ${cupsQ} Cups for $${cupsP}</button></h5><br>
+        <h5>You have <span id='lemon-total'>${lemonsAmt}</span> lemons<button id='buy-lemons'>Buy ${lemonsQ} Lemons for $${lemonsP}</button></h5><br>
+        <h5>You have <span id='sugar-total'>${sugarAmt}</span> sugar<button id='buy-sugar'>Buy ${sugarQ} Units of Sugar for $${sugarP}</button></h5><br>
+        <h5>You have <span id='ice-total'>${iceAmt}</span> ice<button id='buy-ice'>Buy ${iceQ} Cubes of Ice for $${iceP}</button></h5><br>
+        <button id='go-to-recipe'>Go to recipe</button>
+    `
+}
 
 buyScreen.addEventListener("click", function(e) {
     if (e.target.id === 'go-to-recipe') {
         gameContainerDiv.replaceChild(recipeScreen, buyScreen)
     } else if (e.target.id === 'buy-ice') {
-        console.log('clicking buy ice')
+        if (money >= iceP) {
+            iceAmt += iceQ
+            money -= iceP
+            updateMoney();
+            displayIceTotal = document.getElementById('ice-total')
+            displayIceTotal.innerText = `${iceAmt}`
+        }
+        else {
+            alert('Not enough money!')
+        }
     } else if (e.target.id === 'buy-lemons') {
-        console.log('clicking buy lemons')
+        if (money >= lemonsP) {
+            lemonsAmt += lemonsQ
+            money -= lemonsP
+            updateMoney();
+            displayLemonsTotal = document.getElementById('lemon-total')
+            displayLemonsTotal.innerText = `${lemonsAmt}`
+        }
+        else {
+            alert('Not enough money!')
+        }
     } else if (e.target.id === 'buy-sugar') {
-        console.log('clicking buy sugar')
+        if (money >= sugarP) {
+            sugarAmt += sugarQ
+            money -= sugarP
+            updateMoney();
+            displaySugarTotal = document.getElementById('sugar-total')
+            displaySugarTotal.innerText = `${sugarAmt}`
+        }
+        else {
+            alert('Not enough money!')
+        }
     } else if (e.target.id === 'buy-cups') {
-        console.log('clicking buy cups')
+        if (money >= cupsP) {
+            cupsAmt += cupsQ
+            money -= cupsP
+            updateMoney();
+            displayCupTotal = document.getElementById('cup-total')
+            displayCupTotal.innerText = `${cupsAmt}`
+        }
+        else {
+            alert('Not enough money!')
+        }
     }
 })
 
-
+function updateMoney () {
+    constantsContainer.innerHTML = `
+    <h5>Money: <span id='money-span'>${money}</span></h5>
+    <h5>Weather: <span id='weather-span'>${weather}</span></h5>
+    `
+}
 
 fetch (`http://localhost:3000/api/v1/recipes`)
     .then (function (resp) {
@@ -156,6 +258,7 @@ function runSimulation (setPrice, setLemons, setSugar, setIce) {
 }
 
 function endGame () {
+    constantsContainer.style.display = 'none'
     gameContainerDiv.replaceChild(endScreen, resultScreen)
     endScreen.innerHTML = `
     <h1>Final Profit/Loss</h1>
@@ -165,6 +268,13 @@ function endGame () {
 
     let playAgainButton = document.getElementById('play-again')
     playAgainButton.addEventListener("click", function() {
+        money = 20.0
+        cupsAmt = 0
+        lemonsAmt = 0
+        sugarAmt = 0
+        iceAmt = 0
+        counter = 0
+        updateMoney();
         gameContainerDiv.replaceChild(dayChoiceScreen, endScreen)
     })
 }
@@ -174,4 +284,3 @@ resultScreen.id = 'result-screen'
 
 let endScreen = document.createElement('div')
 endScreen.id = 'end-screen'
-
