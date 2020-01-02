@@ -57,7 +57,7 @@ constantsContainer.innerHTML = `
 `
 
 let displayMoney = document.getElementById('money-span')
-displayMoney.innerText = `${money}`
+displayMoney.innerText = `$${money}`
 
 let displayWeather = document.getElementById('weather-span')
 displayWeather.innerText = `${weather} degrees and ${weatherType}`
@@ -65,10 +65,72 @@ displayWeather.innerText = `${weather} degrees and ${weatherType}`
 
 let startScreen = document.getElementById('start-screen')
 let startButton = document.getElementById('start-button')
+let leadersButton = document.getElementById('show-leaders')
 
 startButton.addEventListener("click", function () {
     gameContainerDiv.replaceChild(dayChoiceScreen, startScreen)
 })
+
+leadersButton.addEventListener("click", function () {
+    getLeaders();
+    gameContainerDiv.replaceChild(leaderBoard, startScreen)
+})
+
+let leaderBoard = document.createElement('div')
+leaderBoard.id = 'leaderboard'
+
+function getLeaders() {
+    fetch (`http://localhost:3000/api/v1/scores`)
+    .then (function (resp) {
+        return resp.json();
+    }).then (function (scores) {
+
+        let filteredScores3 = scores.filter(obj => obj.days === 3)
+
+        let filteredScores7 = scores.filter(obj => obj.days === 7)
+
+        let filteredScores14 = scores.filter(obj => obj.days === 14)
+
+        let sortedScores3 = filteredScores3.sort((a, b) => (a.profit > b.profit) ? -1 : 1)
+
+        let sortedScores7 = filteredScores7.sort((a, b) => (a.profit > b.profit) ? -1 : 1)
+
+        let sortedScores14 = filteredScores14.sort((a, b) => (a.profit > b.profit) ? -1 : 1)
+
+        leaderBoard.innerHTML = `
+        <h1>Lemonade Tycoons</h1>
+        <h3>Top Five All-time Profits (3 day game)</h3>
+        <h5>1. Name: ${sortedScores3[0].name} <br> Profit: $${sortedScores3[0].profit}</h5>
+        <h5>2. Name: ${sortedScores3[1].name} <br> Profit: $${sortedScores3[1].profit}</h5>
+        <h5>3. Name: ${sortedScores3[2].name} <br> Profit: $${sortedScores3[2].profit}</h5>
+        <h5>4. Name: ${sortedScores3[3].name} <br> Profit: $${sortedScores3[3].profit}</h5>
+        <h5>5. Name: ${sortedScores3[4].name} <br> Profit: $${sortedScores3[4].profit}</h5>
+        <hr>
+        <h3>Top Five All-time Profits (7 day game)</h3>
+        <h5>1. Name: ${sortedScores7[0].name} <br> Profit: $${sortedScores7[0].profit}</h5>
+        <h5>2. Name: ${sortedScores7[1].name} <br> Profit: $${sortedScores7[1].profit}</h5>
+        <h5>3. Name: ${sortedScores7[2].name} <br> Profit: $${sortedScores7[2].profit}</h5>
+        <h5>4. Name: ${sortedScores7[3].name} <br> Profit: $${sortedScores7[3].profit}</h5>
+        <h5>5. Name: ${sortedScores7[4].name} <br> Profit: $${sortedScores7[4].profit}</h5>
+        <hr>
+        <h3>Top Five All-time Profits (14 day game)</h3>
+        <h5>1. Name: ${sortedScores14[0].name} <br> Profit: $${sortedScores14[0].profit}</h5>
+        <h5>2. Name: ${sortedScores14[1].name} <br> Profit: $${sortedScores14[1].profit}</h5>
+        <h5>3. Name: ${sortedScores14[2].name} <br> Profit: $${sortedScores14[2].profit}</h5>
+        <h5>4. Name: ${sortedScores14[3].name} <br> Profit: $${sortedScores14[3].profit}</h5>
+        <h5>5. Name: ${sortedScores14[4].name} <br> Profit: $${sortedScores14[4].profit}</h5>
+
+        <button id='back'>Back to Start</button><br>
+        `
+        let backButton = document.getElementById('back');
+        backButton.addEventListener('click', function() {
+            gameContainerDiv.replaceChild(startScreen, leaderBoard)
+        })
+    })
+}
+
+//enter name in form to add to leaderboard
+//submit fetch post to http://localhost:3000/api/v1/scores to save to DB
 
 let dayChoiceScreen = document.createElement('div')
 dayChoiceScreen.id = 'day-choice-screen'
@@ -115,10 +177,10 @@ buyScreen.id = 'buy-screen'
 function refreshBuyScreen () { 
     buyScreen.innerHTML = `
         <h1>Purchase Ingredients</h1>
-        <h5>You have <span id='cup-total'>${cupsAmt}</span> cups<button id='buy-cups'>Buy ${cupsQ} Cups for $${cupsP}</button></h5><br>
-        <h5>You have <span id='lemon-total'>${lemonsAmt}</span> lemons<button id='buy-lemons'>Buy ${lemonsQ} Lemons for $${lemonsP}</button></h5><br>
-        <h5>You have <span id='sugar-total'>${sugarAmt}</span> sugar<button id='buy-sugar'>Buy ${sugarQ} Units of Sugar for $${sugarP}</button></h5><br>
-        <h5>You have <span id='ice-total'>${iceAmt}</span> ice<button id='buy-ice'>Buy ${iceQ} Cubes of Ice for $${iceP}</button></h5><br>
+        <h5>You have <span id='cup-total'>${Math.floor(cupsAmt)}</span> cups<button id='buy-cups'>Buy ${cupsQ} Cups for $${cupsP}</button></h5><br>
+        <h5>You have <span id='lemon-total'>${Math.floor(lemonsAmt)}</span> lemons<button id='buy-lemons'>Buy ${lemonsQ} Lemons for $${lemonsP}</button></h5><br>
+        <h5>You have <span id='sugar-total'>${parseFloat(sugarAmt.toFixed(2))}</span> cups of sugar<button id='buy-sugar'>Buy ${sugarQ} Cups of Sugar for $${sugarP}</button></h5><br>
+        <h5>You have <span id='ice-total'>${Math.floor(iceAmt)}</span> ice cubes<button id='buy-ice'>Buy ${iceQ} ice cubes for $${iceP}</button></h5><br>
         <button id='go-to-recipe'>Go to recipe</button>
     `
 }
@@ -131,8 +193,7 @@ buyScreen.addEventListener("click", function(e) {
             iceAmt += iceQ
             money -= iceP
             updateMoney();
-            displayIceTotal = document.getElementById('ice-total')
-            displayIceTotal.innerText = `${iceAmt}`
+            refreshBuyScreen()
         }
         else {
             alert('Not enough money!')
@@ -142,8 +203,7 @@ buyScreen.addEventListener("click", function(e) {
             lemonsAmt += lemonsQ
             money -= lemonsP
             updateMoney();
-            displayLemonsTotal = document.getElementById('lemon-total')
-            displayLemonsTotal.innerText = `${lemonsAmt}`
+            refreshBuyScreen()
         }
         else {
             alert('Not enough money!')
@@ -153,8 +213,7 @@ buyScreen.addEventListener("click", function(e) {
             sugarAmt += sugarQ
             money -= sugarP
             updateMoney();
-            displaySugarTotal = document.getElementById('sugar-total')
-            displaySugarTotal.innerText = `${sugarAmt}`
+            refreshBuyScreen()
         }
         else {
             alert('Not enough money!')
@@ -164,8 +223,7 @@ buyScreen.addEventListener("click", function(e) {
             cupsAmt += cupsQ
             money -= cupsP
             updateMoney();
-            displayCupTotal = document.getElementById('cup-total')
-            displayCupTotal.innerText = `${cupsAmt}`
+            refreshBuyScreen()
         }
         else {
             alert('Not enough money!')
@@ -175,7 +233,7 @@ buyScreen.addEventListener("click", function(e) {
 
 function updateMoney () {
     constantsContainer.innerHTML = `
-    <h5>Money: <span id='money-span'>${parseFloat(money.toFixed(2))}</span></h5>
+    <h5>Money: <span id='money-span'>$${parseFloat(money.toFixed(2))}</span></h5>
     <h5>Weather: <span id='weather-span'>${weather} degrees and ${weatherType}</span></h5>
     `
 }
@@ -202,9 +260,9 @@ function createRecipe(recipe){
     <br>
     Lemons per pitcher:<br>
     <input type="integer" name="lemons" value="${recipe.lemons}"><br>
-    Sugar per pitcher:<br>
+    Cups of Sugar per pitcher:<br>
     <input type="integer" name="sugar" value="${recipe.sugar}"><br>
-    Ice per pitcher:<br>
+    Ice Cubes per pitcher:<br>
     <input type="integer" name="ice" value="${recipe.ice}">
     <br><br>
     <input type="submit" value="Submit and start day">
@@ -220,14 +278,81 @@ recipeScreen.addEventListener("click", function (e) {
     } 
 })
 
+let animationScreen = document.createElement('div')
+// animationScreen.innerHTML = `
+// <h1> HELLO THIS IS THE ANIMATION SCREEN PAY ATTENTION TO ME </h1>
+
+// `
+
+let body = document.getElementsByTagName('body')[0]
+
+let grandDiv = document.getElementById("grand-container")
+grandDiv.style.backgroundImage = ""
+grandDiv.style.backgroundRepeat = "no-repeat"
+grandDiv.style.backgroundSize = "100% 100%"
+grandDiv.style.height = "100%"
+
+gameContainerDiv.style.margin = "auto"
+gameContainerDiv.style.width = "50%"
+// gameContainerDiv.style.marginTop = "150px"
+gameContainerDiv.style.border = "7px solid black"
+gameContainerDiv.style.padding = "10px"
+
+
+constantsContainer.style.width = "50%"
+constantsContainer.style.textAlign = "center"
+
+
+const spongebob = "url(https://vignette.wikia.nocookie.net/spongebob/images/9/9c/Ink_Lemonade_049.png/revision/latest?cb=20180509205958)"
+
+const cartman = "http://southparkstudios.mtvnimages.com/shared/characters/kids/eric-cartman.png"
+
+let cartmanImage = document.createElement('img')
+cartmanImage.src = cartman
+cartmanImage.style = "width:250px;height:300px;"
+cartmanImage.style.position = "fixed"
+cartmanImage.style.top = "360px"
+
+let cartmanCounter = 0
+
+function moveCartman() {
+    cartmanCounter += 5
+    cartmanImage.style.left = `${cartmanCounter}px`
+}
+
+
 recipeScreen.addEventListener("submit", function (e) {
     e.preventDefault();
+    gameContainerDiv.style.display = "none"
+    constantsContainer.style.display = "none"
+
+    grandDiv.style.backgroundImage = `${spongebob}`
+    gameContainerDiv.replaceChild(animationScreen, recipeScreen)
+    grandDiv.appendChild(cartmanImage)
+
+    var interval = window.setInterval(moveCartman, 50)
+
+    setTimeout(function() {
+        gameContainerDiv.replaceChild(resultScreen, animationScreen)
+        grandDiv.style.backgroundImage = ""
+        cartmanCounter = 0
+        clearInterval(interval)
+        cartmanImage.remove()
+        gameContainerDiv.style.display = "block"
+        constantsContainer.style.display = "block"
+    }, 10000);
+
+    
+
+
+
+
+
+    
     let setPrice = parseFloat(e.target[0].value)
     let setLemons = parseInt(e.target[1].value)
     let setSugar = parseInt(e.target[2].value)
     let setIce = parseInt(e.target[3].value)
-
-    gameContainerDiv.replaceChild(resultScreen, recipeScreen)
     
     runSimulation(setPrice, setLemons, setSugar, setIce);
 
@@ -281,13 +406,28 @@ function calculatePeople() {
 
 function runSimulation (setPrice, setLemons, setSugar, setIce) {
 
-    let successRate = calculateIce(setIce) + calculatePricing(setPrice) + calculateRatio(setLemons, setSugar)
-    let people = calculatePeople()
+    let iceRating = calculateIce(setIce);
+    let priceRating = calculatePricing(setPrice);
+    let ratioRating = calculateRatio(setLemons, setSugar);
+    let successRate = iceRating + priceRating + ratioRating;
 
-    let traffic = Math.floor(((successRate/100) * people))
-    // console.log("traffic", traffic)
-    // console.log("calc people", people)
-    // console.log("success rate", successRate)
+    let people = calculatePeople();
+
+    let traffic
+
+    if ((Math.floor(((successRate/100) * people))) > 0) {
+        traffic = Math.floor(((successRate/100) * people));
+    } else {
+        traffic = 0
+    }
+    
+    console.log("ice rating:", calculateIce(setIce))
+    console.log("price rating:", calculatePricing(setPrice))
+    console.log("ratio rating:", calculateRatio(setLemons, setSugar))
+    console.log("total success rate", successRate)
+
+    console.log("number of people who walk by", people)
+    console.log("people who buy a cup", traffic)
     
     let pitchers = Math.ceil(traffic / 10)
 
@@ -336,7 +476,6 @@ function runSimulation (setPrice, setLemons, setSugar, setIce) {
            money += revenue
            refreshBuyScreen()
            updateMoney()
-           
        }
 
     }
@@ -345,7 +484,11 @@ function runSimulation (setPrice, setLemons, setSugar, setIce) {
 
     resultScreen.innerHTML = `
     <h1>Results for Day ${counter}</h1>
-    <h5>Total earnings today: ${parseFloat(revenue.toFixed(2))}</h5>
+    <h5>How close were you to setting the perfect price and recipe? ${parseFloat(successRate.toFixed(2))}%</h5>
+    <h5>How many people walked by your stand? ${people}</h5>
+    <h5>How many people wanted to buy a cup ${traffic}</h5>
+    <h5>How many cups of lemonade did you sell? ${revenue/setPrice}</h5>
+    <h5>Total earnings today: $${parseFloat(revenue.toFixed(2))}</h5>
     `
 
     let nextDayButton = document.createElement('button')
@@ -366,14 +509,62 @@ function runSimulation (setPrice, setLemons, setSugar, setIce) {
     } 
 }
 
+function postScore(playerName) {
+    fetch (`http://localhost:3000/api/v1/scores`, {
+            method: 'POST', 
+            headers: {
+                'Content-Type': 'application/json', 
+                'Accept': 'application/json'
+            },
+            body: JSON.stringify ({
+                name: `${playerName}`, 
+                profit: `${money}`,
+                days: `${counter}`
+            })
+        }).then(response => console.log(response))
+}
+
 function endGame () {
     constantsContainer.style.display = 'none'
     gameContainerDiv.replaceChild(endScreen, resultScreen)
-    endScreen.innerHTML = `
-    <h1>Final Profit/Loss</h1>
-    <h5>Money Money money: ${money}</h5>
-    <button id='play-again'>Play again</button>
-    `
+    if (money > 20) {
+        endScreen.innerHTML = `
+            <h1>Results!</h1>
+            <h5>Money in the bank: $${money}</h5><br>
+            <h5 class="text-success">You made a profit of: $${money-20}</h5>
+            <form id='save-name'>
+            Add your name to save your score to the leaderboard:<br>
+            <input type="text" name="firstname"><br>
+            <input type="submit" value="Submit">
+            </form>
+            <button id='play-again'>Play again</button>
+        `
+        nameForm = document.getElementById('save-name')
+        nameForm.addEventListener("submit", function(e) {
+            e.preventDefault();
+            let playerName = (e.target[0].value)
+            postScore(playerName);
+        })
+    } else {
+        endScreen.innerHTML = `
+            <h1>Profit/Loss</h1>
+            <h5>Money in the bank: $${money}</h5><br>
+            <h5 class="text-danger">You lost a total of: $${20-money}</h5>
+            <form id='save-name'>
+            Add your name to save your score to the leaderboard:<br>
+            <input type="text" name="firstname"><br>
+            <input type="submit" value="Submit">
+            </form>
+            <button id='play-again'>Play again</button>
+        `
+        nameForm = document.getElementById('save-name')
+        nameForm.addEventListener("submit", function(e) {
+            e.preventDefault();
+            let playerName = e.target[0].value
+            postScore(playerName);
+            nameForm.remove()
+        })
+    } 
 
     let playAgainButton = document.getElementById('play-again')
     playAgainButton.addEventListener("click", function() {
@@ -383,6 +574,7 @@ function endGame () {
         sugarAmt = 0
         iceAmt = 0
         counter = 0
+        refreshBuyScreen();
         updateMoney();
         gameContainerDiv.replaceChild(dayChoiceScreen, endScreen)
     })
@@ -393,3 +585,14 @@ resultScreen.id = 'result-screen'
 
 let endScreen = document.createElement('div')
 endScreen.id = 'end-screen'
+
+
+
+
+// let backgroundDiv = document.createElement('div')
+// backgroundDiv.innerHTML = `
+
+
+
+// `
+
