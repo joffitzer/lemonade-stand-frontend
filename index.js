@@ -22,11 +22,22 @@ let counter = 0
 let weather
 let weatherType
 
+let audBackground = document.createElement("audio")
+audBackground.src = "audio/Jazz.mp3"
+audBackground.type = "audio/mpeg"
+audBackground.loop = true;
+
+function playBackground() {
+    audBackground.play()
+}
+
+
+
+
 let weatherTypeArray = ["Sunny", "Partly Cloudy", "Rainy"]
 
 let baseArray = [...Array(100).keys()]
 let weatherArray = baseArray.slice(50)
-
 
 function getPricesAndQuantities() {
     fetch (`http://localhost:3000/api/v1/items`)
@@ -42,6 +53,7 @@ function getPricesAndQuantities() {
         sugarP = items[3].price
         sugarQ = items[3].quantity
         refreshBuyScreen();
+        
 })
 }
 
@@ -68,6 +80,7 @@ let startButton = document.getElementById('start-button')
 let leadersButton = document.getElementById('show-leaders')
 
 startButton.addEventListener("click", function () {
+    playBackground()
     gameContainerDiv.replaceChild(dayChoiceScreen, startScreen)
 })
 
@@ -129,13 +142,10 @@ function getLeaders() {
     })
 }
 
-//enter name in form to add to leaderboard
-//submit fetch post to http://localhost:3000/api/v1/scores to save to DB
-
 let dayChoiceScreen = document.createElement('div')
 dayChoiceScreen.id = 'day-choice-screen'
 dayChoiceScreen.innerHTML = `
-    <h1>Choose the amount of days</h1>
+    <h1>How many days would you like to operate your stand?</h1>
     <button id='three-days'>3 Days</button><br>
     <button id='seven-days'>7 Days</button><br>
     <button id='fourteen-days'>14 Days</button><br>
@@ -252,7 +262,7 @@ let recipeScreen = document.createElement('div')
 function createRecipe(recipe){
     recipeScreen.id = 'recipe-screen'
     recipeScreen.innerHTML = `
-    <h1>Set your price and your recipe</h1>
+    <h1>Set your price and recipe</h1>
     <h5>(1 pitcher = 10 cups)</h5>
     <form>
     Price per cup:<br>
@@ -279,10 +289,20 @@ recipeScreen.addEventListener("click", function (e) {
 })
 
 let animationScreen = document.createElement('div')
-// animationScreen.innerHTML = `
-// <h1> HELLO THIS IS THE ANIMATION SCREEN PAY ATTENTION TO ME </h1>
 
-// `
+let aud = document.createElement("audio")
+aud.src = "audio/DuckCut.mov"
+aud.type = "audio/mpeg"
+function playAudio() {
+    aud.load()
+    aud.play()
+    audBackground.pause()
+}
+
+function pauseAudio() {
+    audBackground.play()
+    aud.pause()
+}
 
 let body = document.getElementsByTagName('body')[0]
 
@@ -298,64 +318,129 @@ gameContainerDiv.style.width = "50%"
 gameContainerDiv.style.border = "7px solid black"
 gameContainerDiv.style.padding = "10px"
 
-
 constantsContainer.style.width = "50%"
 constantsContainer.style.textAlign = "center"
 
-
 const spongebob = "url(https://vignette.wikia.nocookie.net/spongebob/images/9/9c/Ink_Lemonade_049.png/revision/latest?cb=20180509205958)"
 
-const cartman = "http://southparkstudios.mtvnimages.com/shared/characters/kids/eric-cartman.png"
+let characterHeight = 575
 
+const cartman = "http://southparkstudios.mtvnimages.com/shared/characters/kids/eric-cartman.png"
 let cartmanImage = document.createElement('img')
 cartmanImage.src = cartman
 cartmanImage.style = "width:250px;height:300px;"
 cartmanImage.style.position = "fixed"
-cartmanImage.style.top = "360px"
+cartmanImage.style.top = `${characterHeight}px`
+
+const kyle = "http://southparkstudios.mtvnimages.com/shared/characters/kids/kyle-broflovski.png"
+let kyleImage = document.createElement('img')
+kyleImage.src = kyle
+kyleImage.style = "width:250px;height:300px;"
+let kyleStart = 700
+kyleImage.style.right = `${kyleStart}px`
+kyleImage.style.position = "fixed"
+kyleImage.style.top = `${characterHeight}px`
+
+const kenny = "http://southparkstudios.mtvnimages.com/shared/characters/kids/kenny-mccormick.png"
+let kennyImage = document.createElement('img')
+kennyImage.src = kenny
+let kennyStart = 2000
+kennyImage.style.left = `${kennyStart}px`
+kennyImage.style = "width:250px;height:300px;"
+kennyImage.style.position = "fixed"
+kennyImage.style.top = `${characterHeight}px`
+
+const stan = "http://southparkstudios.mtvnimages.com/shared/characters/kids/stan-marsh.png"
+let stanImage = document.createElement('img')
+stanImage.src = stan
+let stanStart = 1800
+stanImage.style.left = `${stanStart}px`
+stanImage.style = "width:250px;height:300px;"
+stanImage.style.position = "fixed"
+stanImage.style.top = `${characterHeight}px`
 
 let cartmanCounter = 0
+let kyleCounter = 0
+let kennyCounter = 0
+let stanCounter = 0
 
-function moveCartman() {
+function moveCartman(kyleStart) {
     cartmanCounter += 5
+    kyleCounter -= 6
+    kennyCounter -= 8
+    stanCounter -= 4.2
+    stanImage.style.left = `${stanStart + stanCounter}px`
+    kennyImage.style.left = `${kennyStart + kennyCounter}px`
     cartmanImage.style.left = `${cartmanCounter}px`
+    kyleImage.style.right = `${kyleCounter + kyleStart}px`
 }
-
 
 recipeScreen.addEventListener("submit", function (e) {
     e.preventDefault();
     gameContainerDiv.style.display = "none"
     constantsContainer.style.display = "none"
+    playAudio()
 
     grandDiv.style.backgroundImage = `${spongebob}`
-    gameContainerDiv.replaceChild(animationScreen, recipeScreen)
     grandDiv.appendChild(cartmanImage)
+    grandDiv.appendChild(kyleImage)
+    grandDiv.appendChild(kennyImage)
+    grandDiv.appendChild(stanImage)
 
-    var interval = window.setInterval(moveCartman, 50)
+    var interval = window.setInterval(moveCartman, 50, kyleStart)
+
+
+    // let skipButton = document.createElement('button')
+    // skipButton.innerText = 'Skip Animation'
+    // grandDiv.appendChild(skipButton)
+
+    // skipButton.addEventListener("click", function() {
+    //     setTimeout(function() {
+    //         gameContainerDiv.replaceChild(resultScreen, recipeScreen)
+    //         grandDiv.style.backgroundImage = ""
+    //         cartmanCounter = 0
+    //         kyleCounter = 0
+    //         kennyCounter = 0
+    //         stanCounter = 0
+    //         clearInterval(interval)
+    //         pauseAudio()
+    //         cartmanImage.remove();
+    //         kyleImage.remove();
+    //         kennyImage.remove()
+    //         stanImage.remove()
+    //         gameContainerDiv.style.display = "block"
+    //         constantsContainer.style.display = "block"
+    //         let setPrice = parseFloat(e.target[0].value)
+    //         let setLemons = parseInt(e.target[1].value)
+    //         let setSugar = parseInt(e.target[2].value)
+    //         let setIce = parseInt(e.target[3].value)
+    //         runSimulation(setPrice, setLemons, setSugar, setIce)
+    //         skipButton.remove()
+    //     }, 0);
+    // })
 
     setTimeout(function() {
-        gameContainerDiv.replaceChild(resultScreen, animationScreen)
+        gameContainerDiv.replaceChild(resultScreen, recipeScreen)
         grandDiv.style.backgroundImage = ""
         cartmanCounter = 0
+        kyleCounter = 0
+        kennyCounter = 0
+        stanCounter = 0
         clearInterval(interval)
-        cartmanImage.remove()
+        pauseAudio()
+        cartmanImage.remove();
+        kyleImage.remove();
+        kennyImage.remove()
+        stanImage.remove()
         gameContainerDiv.style.display = "block"
         constantsContainer.style.display = "block"
-    }, 10000);
-
-    
-
-
-
-
-
-    
-    let setPrice = parseFloat(e.target[0].value)
-    let setLemons = parseInt(e.target[1].value)
-    let setSugar = parseInt(e.target[2].value)
-    let setIce = parseInt(e.target[3].value)
-    
-    runSimulation(setPrice, setLemons, setSugar, setIce);
-
+        let setPrice = parseFloat(e.target[0].value)
+        let setLemons = parseInt(e.target[1].value)
+        let setSugar = parseInt(e.target[2].value)
+        let setIce = parseInt(e.target[3].value)
+        runSimulation(setPrice, setLemons, setSugar, setIce)
+        // skipButton.remove()
+    }, 23000);
 })
 
 let revenue 
@@ -486,7 +571,7 @@ function runSimulation (setPrice, setLemons, setSugar, setIce) {
     <h1>Results for Day ${counter}</h1>
     <h5>How close were you to setting the perfect price and recipe? ${parseFloat(successRate.toFixed(2))}%</h5>
     <h5>How many people walked by your stand? ${people}</h5>
-    <h5>How many people wanted to buy a cup ${traffic}</h5>
+    <h5>How many people wanted to buy a cup? ${traffic}</h5>
     <h5>How many cups of lemonade did you sell? ${revenue/setPrice}</h5>
     <h5>Total earnings today: $${parseFloat(revenue.toFixed(2))}</h5>
     `
@@ -544,6 +629,7 @@ function endGame () {
             e.preventDefault();
             let playerName = (e.target[0].value)
             postScore(playerName);
+            nameForm.remove();
         })
     } else {
         endScreen.innerHTML = `
